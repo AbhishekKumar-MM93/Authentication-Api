@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler";
 import { Validator } from "node-input-validator";
 import { checkValidation, failed, success } from "../helper.js";
 import { decryption, encryption } from "../Uitils/cryptoAuth.js";
-import { json } from "express";
+import generateToken from "../Uitils/generateTokenJWT.js";
 
 const createUser = asyncHandler(async (req, res) => {
   let v = new Validator(req.body, {
@@ -11,7 +11,6 @@ const createUser = asyncHandler(async (req, res) => {
     lastName: "required|string",
     email: "required|email",
     password: "required",
-    confirmPassword: "required",
   });
   const Values = JSON.parse(JSON.stringify(v));
   const errorsResponse = await checkValidation(v);
@@ -58,9 +57,20 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!userExsist) {
     throw new Error("Need to register first");
   } else {
+    let Token = generateToken(userExsist._id);
+
+    let info = {
+      firstName: userExsist.firstName,
+      lastName: userExsist.lastName,
+      email: userExsist.email,
+    };
     let password = decryption(userExsist.password);
     if (password === Values.inputs.password) {
-      return success(res, "Logged in success");
+      return success(res, "Logged in success", {
+        ...info,
+        token: (await Token).token,
+        time: (await Token).loginTime,
+      });
     } else {
       throw new Error("Invalid password or Email");
     }
