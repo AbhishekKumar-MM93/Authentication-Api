@@ -5,6 +5,7 @@ const User = new mongoose.Schema({
   lastName: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  loginTime: { type: String, required: false },
 });
 
 export default new mongoose.model("RegisterUser", User);
